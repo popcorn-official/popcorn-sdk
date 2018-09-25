@@ -1,0 +1,31 @@
+{
+  "name": "popcorn-sdk",
+  "version": "0.0.11",
+  "description": "Popcorn SDK",
+  "homepage": "https://github.com/tripss/popcorn-sdk",
+  "bugs": {
+    "url": "https://github.com/popcorn-sdk/issues"
+  },
+  "author": {
+    "name": "Tycho Bokdam",
+    "email": "t.bokdam@seronaris.nl"
+  },
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/popcorn-sdk.git"
+  },
+  "scripts": {
+    "build": "NODE_ENV=production babel src -d ./ --copy-files --ignore __tests__",
+    "build:watch": "yarn build --watch",
+    "prepublish": "yarn build"
+  },
+  "dependencies": {
+    "axios": "^0.18.0"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-stage-0": "^6.24.1",
+    "babel-preset-es2015": "^6.24.1"
+  }
+}
