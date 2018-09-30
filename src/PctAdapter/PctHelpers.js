@@ -73,11 +73,11 @@ export const formatShowEpisodes = (episodes) => {
     }
 
     seasons[episode.season][episode.episode] = {
-      summary : episode.overview,
-      season  : episode.season,
-      number  : episode.season,
-      episode : episode.episode,
-      torrents: formatTorrents(episode.torrents, 'show'),
+      summary    : episode.overview,
+      season     : episode.season,
+      number     : episode.season,
+      episode    : episode.episode,
+      torrents   : formatTorrents(episode.torrents, 'show')
     }
   })
 

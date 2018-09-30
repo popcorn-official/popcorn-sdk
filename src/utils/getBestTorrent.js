@@ -1,17 +1,31 @@
-export default (torrentOne, torrentTwo) => {
-  if ((!torrentOne || typeof torrentOne === 'undefined') && (!torrentTwo || typeof torrentTwo === 'undefined')) {
+export default (torrents) => {
+  const SD = torrents['480p']
+  const HD = torrents['720p']
+  const fullHD = torrents['1080p']
+
+  if (!SD && !HD && !fullHD) {
     return null
   }
 
-  if (torrentOne && (!torrentTwo || typeof torrentTwo === 'undefined')) {
-    return torrentOne
+  let pool = []
 
-  } else if ((!torrentOne || typeof torrentOne === 'undefined') && torrentTwo) {
-    return torrentTwo
-
-  } else if (torrentOne.health.ratio > torrentTwo.health.ratio) {
-    return torrentOne
+  if (SD) {
+    pool.push(SD)
   }
 
-  return torrentTwo
+  if (HD) {
+    pool.push(HD)
+  }
+
+  if (fullHD) {
+    pool.push(fullHD)
+  }
+
+  return pool.reduce((bestTorrent, torrent) => {
+    if (bestTorrent === null || torrent.health.ratio > bestTorrent.health.ratio) {
+      return torrent
+    }
+
+    return bestTorrent
+  }, null)
 }
