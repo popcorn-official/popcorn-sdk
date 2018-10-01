@@ -22,16 +22,18 @@ export default new (class SDK {
   )
 
   getShow = (itemId) => (
-    this.pctAdapter.getShow(itemId)
-      .then(pctShow => (
-        this.metadataAdapter
-          .getSeasons(itemId, pctShow.seasons)
-          .then(seasons => ({
-            ...pctShow,
-            seasons,
-          }))
-      ))
+    this.getShowBasic(itemId)
+      .then(this.getShowMeta)
   )
+
+  getShowBasic = itemId => this.pctAdapter.getShow(itemId)
+
+  getShowMeta = pctShow => this.metadataAdapter
+    .getSeasons(pctShow.id, pctShow.seasons)
+    .then(seasons => ({
+      ...pctShow,
+      seasons,
+    }))
 
   searchEpisode = (...args) => ({})
 

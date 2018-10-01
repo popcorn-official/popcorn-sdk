@@ -35,7 +35,7 @@ export default class TmdbMetadataProvider {
         itemId,
         watchedEpisodes,
       ),
-    ),
+    ).filter(season => season.season !== 0), // Remove all the specials
   )
 
   getSeasonAndEpisodes = (seasonNr, tmdbId, pctSeason, itemId) => (
