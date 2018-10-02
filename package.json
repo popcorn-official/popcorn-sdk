@@ -2,9 +2,14 @@
   "name": "popcorn-sdk",
   "version": "0.5.0",
   "description": "Popcorn SDK",
+  "keywords": [
+    "popcorn",
+    "popcorn-time",
+    "sdk"
+  ],
   "homepage": "https://github.com/tripss/popcorn-sdk",
   "bugs": {
-    "url": "https://github.com/popcorn-sdk/issues"
+    "url": "https://github.com/tripss/popcorn-sdk/issues"
   },
   "author": {
     "name": "Tycho Bokdam",
@@ -13,7 +18,7 @@
   "main": "./index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/popcorn-sdk.git"
+    "url": "git+https://github.com/tripss/popcorn-sdk.git"
   },
   "scripts": {
     "build": "NODE_ENV=production babel src -d ./ --copy-files --ignore __tests__",
