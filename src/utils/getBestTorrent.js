@@ -9,16 +9,16 @@ export default (torrents) => {
 
   let pool = []
 
-  if (SD) {
-    pool.push(SD)
+  if (fullHD) {
+    pool.push(fullHD)
   }
 
   if (HD) {
     pool.push(HD)
   }
 
-  if (fullHD) {
-    pool.push(fullHD)
+  if (SD) {
+    pool.push(SD)
   }
 
   return pool.reduce((bestTorrent, torrent) => {
