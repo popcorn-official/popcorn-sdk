@@ -1,13 +1,11 @@
 import axios from 'axios'
-import hasOwnProperty from '../../utils/hasOwnProperty'
-
-import * as Constants from '../../constants'
+import formatImage from '../../utils/formatImage'
 
 export default class TmdbMetadataProvider {
 
   key = '809858c82322872e2be9b2c127ccdcf7'
 
-  imageUri = 'https://image.tmdb.org/t/p/'
+  imageUri = 'https://image.tmdb.org/t/p/w500/'
 
   apiUri = 'https://api.themoviedb.org/3/'
 
@@ -31,7 +29,7 @@ export default class TmdbMetadataProvider {
       this.getSeasonAndEpisodes(
         season.season_number,
         tmdbId,
-        pctSeasons[season.season_number],
+        pctSeasons.find(pctSeason => pctSeason.number === season.season_number),
         itemId,
         watchedEpisodes,
       ),
@@ -40,40 +38,41 @@ export default class TmdbMetadataProvider {
 
   getSeasonAndEpisodes = (seasonNr, tmdbId, pctSeason, itemId) => (
     this.tmdb.get(`tv/${tmdbId}/season/${seasonNr}`).then(({ data }) => ({
+      ...pctSeason,
       title   : data.name,
       summary : data.overview,
       episodes: this.formatEpisodes(pctSeason, data.episodes, itemId),
       showId  : itemId,
+      season  : data.season_number,
       number  : data.season_number,
-      type    : Constants.TYPE_SHOW_SEASON,
-      images  : this.formatImage(data.poster_path),
+      images  : formatImage({ poster: this.imageUri + data.poster_path }),
     }))
   )
 
-  formatEpisodes = (pctSeason, episodes, itemId) => episodes.map(episode => ({
-    id         : episode.id,
-    showId     : itemId,
-    title      : episode.name,
-    summary    : episode.overview,
-    number     : episode.episode_number,
-    season     : episode.season_number,
-    type       : Constants.TYPE_SHOW_EPISODE,
-    aired      : new Date(episode.air_date).getTime(),
-    images     : this.formatImage(episode.still_path),
-    torrents   : this.getEpisodeTorrents(pctSeason, episode.episode_number),
-    hasTorrents: this.hasTorrents(pctSeason, episode.episode_number),
-    watched    : {
-      complete: false,
-      progress: 0,
-    },
-  }))
+  formatEpisodes = (pctSeason, episodes, itemId) => episodes.map((episode) => {
+    const pctEpisode = this.getPctEpisodeFromPctSeason(pctSeason, episode.episode_number)
 
-  hasTorrents = (pctSeason, episodeNumber) => (
-    pctSeason && hasOwnProperty(pctSeason, episodeNumber)
-  )
+    return {
+      ...pctEpisode,
+      key        : `${episode.season_number}-${episode.episode_number}`,
+      id         : episode.id,
+      showId     : itemId,
+      title      : episode.name,
+      summary    : episode.overview,
+      number     : episode.episode_number,
+      episode    : episode.episode_number,
+      season     : episode.season_number,
+      aired      : new Date(episode.air_date).getTime(),
+      images     : formatImage({ poster: this.imageUri + episode.still_path }),
+      torrents   : this.getEpisodeTorrents(pctEpisode),
+      hasTorrents: this.hasTorrents(pctEpisode),
+    }
+  })
 
-  getEpisodeTorrents = (pctSeason, episodeNumber) => {
-    if (!this.hasTorrents(pctSeason, episodeNumber)) {
+  hasTorrents = (pctEpisode) => !!pctEpisode.torrents
+
+  getEpisodeTorrents = (pctEpisode) => {
+    if (!this.hasTorrents(pctEpisode)) {
       return {
         '1080p': null,
         '720p' : null,
@@ -81,20 +80,19 @@ export default class TmdbMetadataProvider {
       }
     }
 
-    return pctSeason[episodeNumber].torrents
+    return pctEpisode.torrents
   }
 
-  formatImage = (image) => {
-    const replaceWidthPart = (uri, size) => this.imageUri + size + uri
+  getPctEpisodeFromPctSeason = (pctSeason, episodeNumber) => {
+    if (pctSeason) {
+      const episode = pctSeason.episodes.find(pctEpisode => pctEpisode.number === episodeNumber)
 
-    return {
-      poster: {
-        full  : image ? replaceWidthPart(image, 'original') : null,
-        high  : image ? replaceWidthPart(image, 'w1280') : null,
-        medium: image ? replaceWidthPart(image, 'w780') : null,
-        thumb : image ? replaceWidthPart(image, 'w342') : null,
-      },
+      if (episode) {
+        return episode
+      }
     }
+
+    return {}
   }
 
 }

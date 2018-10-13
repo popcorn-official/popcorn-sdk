@@ -1,40 +1,6 @@
+import * as Constants from '../constants'
 import getHealth from '../utils/getHealth'
-
-export const formatImages = (images) => {
-  const replaceWidthPart = (uri, replaceWith) => uri.replace('w500', replaceWith)
-
-  if (!images.poster || !images.fanart) {
-    return {
-      poster: {
-        full  : null,
-        high  : null,
-        medium: null,
-        thumb : null,
-      },
-      fanart: {
-        full  : null,
-        high  : null,
-        medium: null,
-        thumb : null,
-      },
-    }
-  }
-
-  return {
-    poster: {
-      full  : replaceWidthPart(images.poster, 'original'),
-      high  : replaceWidthPart(images.poster, 'w1280'),
-      medium: replaceWidthPart(images.poster, 'w780'),
-      thumb : replaceWidthPart(images.poster, 'w342'),
-    },
-    fanart: {
-      full  : replaceWidthPart(images.fanart, 'original'),
-      high  : replaceWidthPart(images.fanart, 'w1280'),
-      medium: replaceWidthPart(images.fanart, 'w780'),
-      thumb : replaceWidthPart(images.fanart, 'w342'),
-    },
-  }
-}
+import formatImage from '../utils/formatImage'
 
 export const formatTorrents = (torrents, type = 'movie') => {
   const formatTorrent = (torrent, quality) => ({
@@ -69,17 +35,38 @@ export const formatShowEpisodes = (episodes) => {
 
   episodes.forEach((episode) => {
     if (!seasons[episode.season]) {
-      seasons[episode.season] = []
+      seasons[episode.season] = {
+        title   : null,
+        summary : null,
+        showId  : null,
+        season  : episode.season,
+        number  : episode.season,
+        type    : Constants.TYPE_SHOW_SEASON,
+        episodes: [],
+        images  : formatImage(),
+      }
     }
 
-    seasons[episode.season][episode.episode] = {
+    seasons[episode.season].episodes.push({
+      key        : `${episode.season}-${episode.episode}`,
+      id         : null,
+      showId     : null,
+      title      : episode.title,
       summary    : episode.overview,
       season     : episode.season,
-      number     : episode.season,
       episode    : episode.episode,
-      torrents   : formatTorrents(episode.torrents, 'show')
-    }
+      number     : episode.episode,
+      aired      : new Date(episode.first_aired).getTime(),
+      torrents   : formatTorrents(episode.torrents, 'show'),
+      hasTorrents: true,
+      images     : formatImage(),
+      type       : Constants.TYPE_SHOW_EPISODE,
+      watched    : {
+        complete: false,
+        progress: 0,
+      },
+    })
   })
 
-  return seasons
+  return seasons.filter(Boolean)
 }

@@ -2,6 +2,7 @@ import axios from 'axios'
 
 import * as PctHelpers from './PctHelpers'
 import formatRuntime from '../utils/formatRuntime'
+import formatImage from '../utils/formatImage'
 import * as Constants from '../constants'
 
 export default class PctAdapter {
@@ -45,7 +46,7 @@ export default class PctAdapter {
     summary      : movie.synopsis,
     runtime      : formatRuntime(movie.runtime),
     trailer      : movie.trailer,
-    images       : PctHelpers.formatImages(movie.images),
+    images       : formatImage(movie.images),
     genres       : movie.genres,
     rating       : PctHelpers.formatRating(movie.rating),
     torrents     : PctHelpers.formatTorrents(movie.torrents.en),
@@ -60,14 +61,15 @@ export default class PctAdapter {
 
   formatShow = (show, isDetail = false) => {
     let formattedShow = {
-      id         : show.imdb_id,
-      title      : show.title,
-      year       : show.year,
-      images     : PctHelpers.formatImages(show.images),
-      rating     : PctHelpers.formatRating(show.rating),
-      num_seasons: show.num_seasons,
-      type       : Constants.TYPE_SHOW,
-      watched    : {
+      id        : show.imdb_id,
+      title     : show.title,
+      year      : show.year,
+      images    : formatImage(show.images),
+      rating    : PctHelpers.formatRating(show.rating),
+      seasons   : [],
+      numSeasons: show.num_seasons,
+      type      : Constants.TYPE_SHOW,
+      watched   : {
         complete: false,
         progress: 0,
       },
@@ -81,6 +83,7 @@ export default class PctAdapter {
         summary: show.synopsis,
         genres : show.genres,
         status : show.status,
+        network: show.network,
       }
     }
 
