@@ -6,12 +6,14 @@ export default new (class SDK {
 
   pctAdapter
   metadataAdapter
-  bookmarkAdapter
+
+  bookmarks
 
   constructor() {
     this.pctAdapter = new PctAdapter()
     this.metadataAdapter = new MetadataAdapter()
-    this.bookmarkAdapter = new BookmarkAdapter()
+
+    this.bookmarks = new BookmarkAdapter()
   }
 
   /**
@@ -20,22 +22,22 @@ export default new (class SDK {
    * @param bookmarkAdapter
    */
   setBookmarkAdapter = (bookmarkAdapter) => {
-    this.bookmarkAdapter = bookmarkAdapter
+    this.bookmarks = bookmarkAdapter
   }
 
   getMovies = (page = 1, filters = {}) => (
     this.pctAdapter.getMovies(page, filters)
-      .then(this.bookmarkAdapter.checkMovies)
+      .then(this.bookmarks.checkMovies)
   )
 
   getMovie = (itemId) => (
     this.pctAdapter.getMovie(itemId)
-      .then(this.bookmarkAdapter.checkMovie)
+      .then(this.bookmarks.checkMovie)
   )
 
   getShows = (page = 1, filters = {}) => (
     this.pctAdapter.getShows(page, filters)
-      .then(this.bookmarkAdapter.checkShows)
+      .then(this.bookmarks.checkShows)
   )
 
   getShow = (itemId) => (
@@ -45,7 +47,7 @@ export default new (class SDK {
 
   getShowBasic = itemId => (
     this.pctAdapter.getShow(itemId)
-      .then(this.bookmarkAdapter.checkShow)
+      .then(this.bookmarks.checkShow)
   )
 
   getShowMeta = pctShow => this.metadataAdapter
