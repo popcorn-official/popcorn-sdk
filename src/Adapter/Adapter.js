@@ -1,7 +1,7 @@
 /**
- * Default Bookmark adapter with the minimum required functions
+ * Default adapter with the minimum required functions
  */
-export default class BookmarkAdapter {
+export default class Adapter {
 
   checkMovies = movies => movies
 

@@ -22,8 +22,8 @@ export default class PctAdapter {
   )
 
   getMovie = itemId => (
-    this.popcornAPI.get(`movie/${itemId}`)
-      .then(({ data: movie }) => this.formatMovie(movie, { params: { day: this.defaultFilters.day } }))
+    this.popcornAPI.get(`movie/${itemId}`, { params: { day: this.defaultFilters.day } })
+      .then(({ data: movie }) => this.formatMovie(movie))
   )
 
   getShows = (page = 1, filters = {}) => (
