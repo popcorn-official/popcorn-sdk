@@ -25,7 +25,10 @@ export default class TmdbMetadataProvider {
       .then(({ data }) => this.formatSeasons(data.seasons, pctSeasons, itemId, tmdbId))
 
   formatSeasons = (seasons, pctSeasons, itemId, tmdbId, watchedEpisodes) => Promise.all(
-    seasons.map(season =>
+    seasons.filter(({ season_number, episode_count }) =>
+      season_number !== 0 &&  // Remove all specials
+      episode_count > 0,       // Remove all seasons that are not aired and don't have episodes
+    ).map(season =>
       this.getSeasonAndEpisodes(
         season.season_number,
         tmdbId,
@@ -33,7 +36,7 @@ export default class TmdbMetadataProvider {
         itemId,
         watchedEpisodes,
       ),
-    ).filter(season => season.season !== 0), // Remove all the specials
+    ),
   )
 
   getSeasonAndEpisodes = (seasonNr, tmdbId, pctSeason, itemId) => (
