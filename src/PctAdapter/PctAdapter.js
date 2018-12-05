@@ -62,6 +62,10 @@ export default class PctAdapter {
   formatShow = (show, isDetail = false) => {
     let formattedShow = {
       id        : show.imdb_id,
+      ids       : {
+        imdb: show.imdb_id,
+        tmdb: null,
+      },
       title     : show.title,
       year      : show.year,
       images    : formatImage(show.images),

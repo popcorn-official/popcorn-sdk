@@ -22,32 +22,59 @@ export default new (class SDK {
       .then(this.checkAdapters('checkMovies'))
   )
 
-  getMovie = (itemId) => (
-    this.pctAdapter.getMovie(itemId)
-      .then(this.checkAdapters('checkMovie'))
-  )
+  getMovie = (item) => {
+    if (!item.ids || !item.ids.imdb) {
+      throw Error(`"ids.imdb" is required to retrieve a movie!`)
+    }
+
+    return (
+      this.pctAdapter.getMovie(item.ids.imdb)
+        .then(this.checkAdapters('checkMovie'))
+    )
+  }
 
   getShows = (page = 1, filters = {}) => (
     this.pctAdapter.getShows(page, filters)
       .then(this.checkAdapters('checkShows'))
   )
 
-  getShow = (itemId) => (
-    this.getShowBasic(itemId)
-      .then(this.getShowMeta)
-  )
+  getShow = async(item) => {
+    if (item.ids.imdb) {
+      return this.getShowBasic(item.ids.imdb)
+        .then(this.getShowMeta)
 
-  getShowBasic = itemId => (
-    this.pctAdapter.getShow(itemId)
+    } else if (item.ids.tmdb) {
+      // If we don't have the IMDB id but we have TMDB id we need a additional call
+
+      const veryBasicShow = await this.metadataAdapter.getShowIds(item)
+      const pctShow = await this.getShowBasic(veryBasicShow)
+
+      return this.getShowSeasonsMeta({
+        ...pctShow,
+        ...veryBasicShow,
+      })
+    }
+  }
+
+  getShowBasic = imdbID => (
+    this.pctAdapter.getShow(imdbID)
       .then(this.checkAdapters('checkShow'))
   )
 
   getShowMeta = pctShow => this.metadataAdapter
-    .getSeasons(pctShow.id, pctShow.seasons)
+    .getShowIds(pctShow)
+    .then(this.getShowSeasonsMeta)
+
+  getShowIds = pctShow => this.metadataAdapter.getShowIds(pctShow)
+
+  getShowSeasonsMeta = pctShow => this.metadataAdapter
+    .getAdditionalShowSeasonsMeta(pctShow)
     .then(seasons => ({
       ...pctShow,
       seasons,
     }))
+
+  getShowRecommendations = (...args) => this.metadataAdapter.getShowRecommendations(...args)
 
   checkAdapters = (method) => async(items) => {
     for (let i = 0; i < this.adapters.length; i++) {

@@ -12,11 +12,25 @@ export default class MetadataAdapter {
     this.tmdbProvider = new TmdbMetadataProvider()
   }
 
-  getSeasons = (itemId, pctSeasons) => new Promise((resolve) => {
-    this.traktProvider.getIds(itemId).then(({ ids: { tmdb } }) => (
-        this.tmdbProvider.getSeasons(itemId, tmdb, pctSeasons).then(resolve)
-      ),
-    )
-  })
+  /**
+   * Adds trailer and ids to the show
+   *
+   * @param item
+   * @returns {*}
+   */
+  getShowIds = item => {
+    if (item.id || item.ids.imdb) {
+      return this.traktProvider.getShowByItem(item)
+
+    } else if (item.ids.tmdb) {
+      return this.traktProvider.searchShowByTmdb(item)
+    }
+
+    throw Error('No id to use to retrieve show with!')
+  }
+
+  getAdditionalShowSeasonsMeta = item => this.tmdbProvider.getSeasons(item)
+
+  getShowRecommendations = (...args) => this.tmdbProvider.getTvRecommendations(...args)
 
 }

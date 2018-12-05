@@ -15,15 +15,71 @@ $ npm install --save popcorn-sdk
 import SDK from 'popcorn-sdk'
 
 const movies = await SDK.getMovies()
-const movie = await SDK.getMovie(imdbId)
+const movie = await SDK.getMovie({ ids: { imdb: '' } })
 
 const shows = await SDK.getShows()
-const show = await SDK.getShow(imdbId)
+const show = await SDK.getShow({ ids: { imdb: '', tmdb: '' }}) // One of the two, imdb is preferred
 
 // Or for slower internet connections you can partial load a show
 const showBasic = await SDK.getBasicShow(imdbId)
+
 // getShowMeta retrieves data from The Movie DB for better episode info and season / episode images
-const showWithMeta = await SDK.getShowMeta(showBasic)
+// Basically runs getShowIds and getShowSeasonsMeta
+const showWithMeta = await SDK.getShowMeta(showBasic) 
+
+// To only retrieve the ids for a show
+const showWithIds = await SDK.getShowIds({ids: { imdb: '', tmdb: '' }})
+
+// To only retrieve the seasons meta
+const showWithSeasons = await SDK.getShowSeasonsMeta(showBasic)
+
+// To retrieve recommendations for a certain show
+const recommendations = await SDK.getShowRecommendations({ ids: { tmdb: '' } })
+```
+
+### Adapters
+You can add adapters handy for if you want to add attributes to movies / shows 
+```js
+import SDK from 'popcorn-sdk'
+import DefaultAdapter from 'popcorn-sdk/Adapter'
+
+class MyAdapter extends DefaultAdapter {
+
+  /**
+   * Get's called after the movies are fetched and before they are returned
+   * 
+   * @param movies
+   * @returns {*}
+   */
+  checkMovies = movies => movies
+
+  /**
+   * Get's called after the movie is fetched and before they it is returned
+   *
+   * @param movie
+   * @returns {*}
+   */
+  checkMovie = movie => movie
+
+  /**
+   * Get's called after the shows are fetched and before they are returned
+   *
+   * @param shows
+   * @returns {*}
+   */
+  checkShows = shows => shows
+
+  /**
+   * Get's called after the show is fetched and before they it is returned
+   *
+   * @param show
+   * @returns {*}
+   */
+  checkShow = show => show
+}
+
+SDK.addAdapter(new MyAdapter())
+
 ```
 
 ### Movie output
