@@ -1,11 +1,16 @@
 import axios from 'axios'
 
 import * as PctHelpers from './PctHelpers'
-import formatRuntime from '../utils/formatRuntime'
 import formatImage from '../utils/formatImage'
 import * as Constants from '../constants'
 
 export default class PctAdapter {
+
+  today = null
+
+  constructor() {
+    this.today = new Date()
+  }
 
   defaultFilters = {
     sort: 'trending',
@@ -13,7 +18,7 @@ export default class PctAdapter {
   }
 
   popcornAPI = axios.create({
-    baseURL: 'https://movies-v2.api-fetch.website/',
+    baseURL: 'http://beta2.api-fetch.website/',
   })
 
   getMovies = (page = 1, filters = {}) => (
@@ -33,25 +38,18 @@ export default class PctAdapter {
 
   getShow = itemId => (
     this.popcornAPI.get(`show/${itemId}`, { params: { day: this.defaultFilters.day } })
-      .then(({ data: show }) => this.formatShow(show, true))
+      .then(({ data: show }) => this.formatShow(show))
   )
 
   formatMovies = movies => (movies.map(movie => this.formatMovie(movie)))
 
   formatMovie = (movie) => ({
-    id           : movie.imdb_id,
-    title        : movie.title,
-    year         : movie.year,
-    certification: movie.certification,
-    summary      : movie.synopsis,
-    runtime      : formatRuntime(movie.runtime),
-    trailer      : movie.trailer,
-    images       : formatImage(movie.images),
-    genres       : movie.genres,
-    rating       : PctHelpers.formatRating(movie.rating),
-    torrents     : PctHelpers.formatTorrents(movie.torrents.en),
-    type         : Constants.TYPE_MOVIE,
-    watched      : {
+    ...movie,
+    id      : movie._id,
+    images  : formatImage(movie.images),
+    torrents: PctHelpers.formatTorrents(movie.torrents),
+    type    : Constants.TYPE_MOVIE,
+    watched : {
       complete: false,
       progress: 0,
     },
@@ -59,40 +57,23 @@ export default class PctAdapter {
 
   formatShows = shows => shows.map(show => this.formatShow(show))
 
-  formatShow = (show, isDetail = false) => {
-    let formattedShow = {
-      id        : show.imdb_id,
-      ids       : {
-        imdb: show.imdb_id,
-        tmdb: null,
-      },
-      title     : show.title,
-      year      : show.year,
-      images    : formatImage(show.images),
-      rating    : PctHelpers.formatRating(show.rating),
-      seasons   : [],
-      numSeasons: show.num_seasons,
-      type      : Constants.TYPE_SHOW,
-      watched   : {
-        complete: false,
-        progress: 0,
-      },
-    }
-
-    if (isDetail) {
-      formattedShow = {
-        ...formattedShow,
-        runtime: formatRuntime(show.runtime),
-        seasons: PctHelpers.formatShowEpisodes(show.episodes),
-        summary: show.synopsis,
-        genres : show.genres,
-        status : show.status,
-        network: show.network,
-      }
-    }
-
-    return formattedShow
-  }
+  formatShow = show => ({
+    ...show,
+    id     : show._id,
+    images : formatImage(show.images),
+    type   : Constants.TYPE_SHOW,
+    seasons: show.seasons.map(season => ({
+      ...season,
+      episodes: season.episodes.map(episode => ({
+        ...episode,
+        hasAired: episode.first_aired * 1000 < this.today.getTime(),
+      })),
+    })),
+    watched: {
+      complete: false,
+      progress: 0,
+    },
+  })
 
   getStatus = () => this.popcornAPI.get().then(res => res.ok).catch(() => false)
 

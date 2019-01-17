@@ -20,27 +20,22 @@ export default class TraktMetadataAdapter {
     })
   }
 
-  getShowByItem = item => (
-    this.trakt.get(`shows/${item.id || item.ids.imdb}`, { params: { extended: 'full' } })
-      .then(({ data }) => this.formatShow(item, data))
-  )
-
-  searchShowByTmdb = item => (
-    this.trakt.get(`search/tmdb/${item.ids.tmdb}`, { params: { type: 'show', extended: 'full' } })
+  searchShowByTmdb = tmdb_id => (
+    this.trakt.get(`search/tmdb/${tmdb_id}`, { params: { type: 'show' } }) // extended: 'full'
       .then(({ data }) => {
         if (data.length > 0) {
-          return this.formatShow(item, data[0].show)
+          return this.formatIds(data.shift().show)
         }
 
-        throw Error(`TraktMetadataAdapter: No show found with tmdb id ${item.ids.tmdb}`)
+        throw Error(`TraktMetadataAdapter: No show found with tmdb id ${tmdb_id}`)
       })
   )
 
-  formatShow = (show, traktShow) => ({
-    ...show,
+  formatIds = traktShow => ({
     id     : traktShow.ids.imdb,
-    ids    : traktShow.ids,
-    trailer: traktShow.trailer,
+    imdb_id: traktShow.ids.imdb,
+    tmdb_id: traktShow.ids.tmdb,
+    tvdb_id: traktShow.ids.tvdb,
   })
 
 }

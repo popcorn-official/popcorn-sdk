@@ -1,4 +1,4 @@
-export default ({ poster, fanart } = {}) => {
+export default ({ poster, backdrop } = {}) => {
   const replaceWidthPart = (uri, replaceWith) => uri.replace('w500', replaceWith)
 
   return {
@@ -8,11 +8,11 @@ export default ({ poster, fanart } = {}) => {
       medium: !poster ? null : replaceWidthPart(poster, 'w780'),
       thumb : !poster ? null : replaceWidthPart(poster, 'w342'),
     },
-    fanart: {
-      full  : !fanart ? null : replaceWidthPart(fanart, 'original'),
-      high  : !fanart ? null : replaceWidthPart(fanart, 'w1280'),
-      medium: !fanart ? null : replaceWidthPart(fanart, 'w780'),
-      thumb : !fanart ? null : replaceWidthPart(fanart, 'w342'),
+    backdrop: {
+      full  : !backdrop ? null : replaceWidthPart(backdrop, 'original'),
+      high  : !backdrop ? null : replaceWidthPart(backdrop, 'w1280'),
+      medium: !backdrop ? null : replaceWidthPart(backdrop, 'w780'),
+      thumb : !backdrop ? null : replaceWidthPart(backdrop, 'w342'),
     },
   }
 
