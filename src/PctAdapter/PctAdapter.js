@@ -62,13 +62,15 @@ export default class PctAdapter {
     id     : show._id,
     images : formatImage(show.images),
     type   : Constants.TYPE_SHOW,
-    seasons: show.seasons.map(season => ({
-      ...season,
-      episodes: season.episodes.map(episode => ({
-        ...episode,
-        hasAired: episode.first_aired * 1000 < this.today.getTime(),
-      })),
-    })),
+    seasons: show.seasons
+      ? show.seasons.map(season => ({
+        ...season,
+        episodes: season.episodes.map(episode => ({
+          ...episode,
+          hasAired: episode.first_aired < this.today.getTime(),
+        })),
+      }))
+      : [],
     watched: {
       complete: false,
       progress: 0,

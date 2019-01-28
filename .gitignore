@@ -2,6 +2,9 @@
 
 !src
 !src/**
+!bin
+!bin/**
+!assets
 !.babelrc
 !.gitignore
 !.npmignore
