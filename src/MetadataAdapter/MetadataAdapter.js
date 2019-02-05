@@ -31,6 +31,8 @@ export default class MetadataAdapter {
 
   getAdditionalShowSeasonsMeta = item => this.tmdbProvider.getSeasons(item)
 
+  getAdditionalSeasonAndEpisodesInfo = (...args) => this.tmdbProvider.getSeasonAndEpisodes(...args)
+
   getShowRecommendations = (...args) => this.tmdbProvider.getTvRecommendations(...args)
 
 }
