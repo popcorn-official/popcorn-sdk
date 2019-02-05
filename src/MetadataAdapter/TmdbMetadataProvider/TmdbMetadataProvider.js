@@ -95,7 +95,11 @@ export default class TmdbMetadataProvider {
       episode    : episode.episode_number,
       season     : episode.season_number,
       aired      : new Date(episode.air_date).getTime(),
-      images     : formatImage({ poster: this.imageUri + episode.still_path }),
+      images     : formatImage({
+        poster: episode.still_path
+          ? this.imageUri + episode.still_path
+          : null,
+      }),
       torrents   : this.getEpisodeTorrents(pctEpisode),
       hasTorrents: this.hasTorrents(pctEpisode),
     }
