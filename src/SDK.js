@@ -1,16 +1,21 @@
 import PctAdapter from './PctAdapter'
 import MetadataAdapter from './MetadataAdapter'
+import SubsAdapter from './SubsAdapter'
+
+import * as Constants from './constants'
 
 export default new (class SDK {
 
   pctAdapter
   metadataAdapter
+  subsAdapter
 
   adapters = []
 
   constructor() {
     this.pctAdapter = new PctAdapter()
     this.metadataAdapter = new MetadataAdapter()
+    this.subsAdapter = new SubsAdapter()
   }
 
   addAdapter = (adapter) => {
@@ -87,5 +92,7 @@ export default new (class SDK {
   searchEpisode = (...args) => ({})
 
   search = (...args) => ([])
+
+  searchForSubtitles = (item, season = null, episode = null) => this.subsAdapter.searchSubtitles(item, season, episode)
 
 })()
