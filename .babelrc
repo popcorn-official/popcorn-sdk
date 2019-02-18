@@ -1,6 +1,10 @@
 {
-  "presets": [
-    "es2015",
-    "stage-0"
-  ]
+  "plugins": [
+    "@babel/plugin-transform-runtime",
+    "@babel/plugin-transform-flow-strip-types",
+    "@babel/plugin-proposal-export-namespace-from",
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-object-rest-spread"
+  ],
+  "sourceMaps": true
 }
