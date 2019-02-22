@@ -42,17 +42,10 @@ export default class SubsAdapter {
 
     return this.call('SearchSubtitles', [
       this.token,
-      [
-        query,
-      ],
+      this.optimizeQueryTerms(item, season, episode),
     ]).then(({ data }) => this.optimizeSubs(data, query))
       .then(list => this.filter(list, query))
   }
-
-
-
-
-
 
 
   /**
@@ -60,61 +53,25 @@ export default class SubsAdapter {
    */
 
   // AND USE THIS
-  optimizeQueryTerms(input) {
-    // parse
-    const normalize = this.normalizeProt()
-    input.imdbid = input.imdbid && parseInt(input.imdbid.toString().replace('tt', ''), 10)
-    input.season = input.season && parseInt(input.season)
-    input.episode = input.episode && parseInt(input.episode)
-    input.hash = input.hash && input.hash.toString().length >= 32 && input.hash.toString().toLowerCase()
-    input.filesize = input.filesize && parseInt(input.filesize)
-    input.fps = input.fps && input.fps.toString()
-    input.filename = input.filename || input.path && path.basename(input.path)
+  optimizeQueryTerms(item, season = null, episode = null) {
+    const imdbId = parseInt(item.id.toString().replace('tt', ''), 10)
 
-
-    const output = Array()
+    const output = []
     let i = 0
 
-    // first data call
-    if (input.hash || input.filesize) {
-      output[i] = {
-        moviehash    : input.hash && input.hash,
-        moviebytesize: input.filesize && input.filesize.toString(),
+    if (imdbId) { // third data call
+      output[i] = {}
+      output[i].imdbid = imdbId.toString()
+
+      if (season && episode) {
+        output[i].season = season.toString()
+        output[i].episode = episode.toString()
       }
-      i++
-    }
-
-    if (input.filename) { // second data call
-      output[i] = Object()
-      output[i].tag = input.filename
-      i++
-    }
-
-    if (input.imdbid) { // third data call
-      output[i] = Object()
-      output[i].imdbid = input.imdbid.toString()
-
-      if (input.season && input.episode) {
-        output[i].season = input.season.toString()
-        output[i].episode = input.episode.toString()
-      }
-      i++
-    }
-
-    if (!input.imdbid && !input.hash && !input.path && !input.filename && input.query) { // fallback
-      output[i] = Object()
-      output[i].query = input.query
-
-      if (input.season && input.episode) {
-        output[i].season = input.season.toString()
-        output[i].episode = input.episode.toString()
-      }
-      i++
     }
 
     // mandatory lang parameter
     for (let o of output) {
-      o.sublanguageid = input.sublanguageid || 'all'
+      o.sublanguageid = 'all'
     }
 
     return output
