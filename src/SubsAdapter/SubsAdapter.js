@@ -138,7 +138,6 @@ export default class SubsAdapter {
           || (input.season && input.episode && (input.season != sub.season || input.episode != sub.episode))) return
 
       const tmp = {
-        url      : input.gzip ? sub.SubDownloadLink : sub.SubDownloadLink.replace('.gz', ''),
         langcode : sub.ISO639,
         downloads: parseInt(sub.SubDownloadsCnt),
         lang     : sub.LanguageName,
@@ -149,7 +148,11 @@ export default class SubsAdapter {
         score    : 0,
         fps      : parseFloat(sub.MovieFPS) || null,
         format   : sub.SubFormat,
-        utf8     : input.gzip ? sub.SubDownloadLink.replace('download/', 'download/subencoding-utf8/')
+        url      : input.gzip
+          ? sub.SubDownloadLink
+          : sub.SubDownloadLink.replace('.gz', ''),
+        utf8     : input.gzip
+          ? sub.SubDownloadLink.replace('download/', 'download/subencoding-utf8/')
           : sub.SubDownloadLink.replace('.gz', '').replace('download/', 'download/subencoding-utf8/'),
         vtt      : sub.SubDownloadLink.replace('download/', 'download/subformat-vtt/').replace('.gz', ''),
       }
