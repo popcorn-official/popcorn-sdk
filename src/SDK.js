@@ -93,6 +93,8 @@ export default new (class SDK {
 
   search = (...args) => ([])
 
-  searchForSubtitles = (item, season = null, episode = null) => this.subsAdapter.searchSubtitles(item, season, episode)
+  searchForSubtitles = (item, torrent = null, season = null, episode = null) => (
+    this.subsAdapter.searchSubtitles(item, torrent, season, episode)
+  )
 
 })()

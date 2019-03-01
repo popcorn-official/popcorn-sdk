@@ -35,29 +35,30 @@ export default class SubsAdapter {
 
   login = () => this.call('LogIn', ['', '', 'en', this.userAgent])
 
-  searchSubtitles(item, season = null, episode = null) {
-    const query = {
-      imdbid: item.id.replace('tt', ''),
-    }
+  searchSubtitles = (item, torrent, season = null, episode = null) => {
+    const query = this.optimizeQueryTerms(item, torrent, season, episode)
 
     return this.call('SearchSubtitles', [
       this.token,
-      this.optimizeQueryTerms(item, season, episode),
+      query,
     ]).then(({ data }) => this.optimizeSubs(data, query))
-      .then(list => this.filter(list, query))
+      .then(list => this.filter(list))
   }
 
-
-  /**
-   * TODO:: EVERYTHING BELOW SHOULD BE IMPROVED AND CLEANEDUP
-   */
-
   // AND USE THIS
-  optimizeQueryTerms(item, season = null, episode = null) {
+  optimizeQueryTerms = (item, torrent, season = null, episode = null) => {
     const imdbId = parseInt(item.id.toString().replace('tt', ''), 10)
 
     const output = []
     let i = 0
+
+    // first data call
+    if (torrent && torrent.size) {
+      output[i] = {
+        moviebytesize: torrent.size,
+      }
+      i++
+    }
 
     if (imdbId) { // third data call
       output[i] = {}
@@ -77,29 +78,37 @@ export default class SubsAdapter {
     return output
   }
 
-  optimizeSubs(response, input) {
+  optimizeSubs = (response, input) => {
     // based on OpenSRTJS, under MIT - Copyright (c) 2014 Eóin Martin
     let inputTags
     let inputTagsDic = Object()
     const normalize = this.normalizeProt()
+
     const matchTags = (sub, maxScore) => {
-      if (!input.filename) return 0
+      if (!input.filename) {
+        return 0
+      }
 
-      if (!inputTags)
+      if (!inputTags) {
         inputTags = input.filename && normalize(input.filename).toLowerCase().match(/[a-z0-9]{2,}/gi)
+      }
 
-      if (!inputTags || inputTags.length <= 2) return 0
+      if (!inputTags || inputTags.length <= 2) {
+        return 0
+      }
 
       const subNames = normalize(sub.MovieReleaseName + '_' + sub.SubFileName)
       const subTags = subNames.toLowerCase().match(/[a-z0-9]{2,}/gi)
 
-      if (!subTags.length) return 0
+      if (!subTags.length) {
+        return 0
+      }
 
       for (let tag of inputTags) inputTagsDic[tag] = false
 
       let matches = 0
       for (let subTag of subTags) { // is term in filename, only once
-        if (inputTagsDic[subTag] == false) {
+        if (inputTagsDic[subTag] === false) {
           inputTagsDic[subTag] = true
           matches++
         }
@@ -107,13 +116,8 @@ export default class SubsAdapter {
 
       return parseInt((matches / inputTags.length) * maxScore)
     }
-    const subtitles = Object()
 
-    // if string passed as supported extension, convert to array
-    if (input.extensions && typeof input.extensions === 'string') input.extensions = [input.extensions]
-
-    // if no supported extensions passed, default to 'srt'
-    if (!input.extensions || !input.extensions instanceof Array) input.extensions = ['srt']
+    const subtitles = {}
 
     // remove duplicate and empty
     var seen = {}
@@ -129,13 +133,15 @@ export default class SubsAdapter {
       sub.season = sub.SeriesSeason && parseInt(sub.SeriesSeason)
       sub.episode = sub.SeriesEpisode && parseInt(sub.SeriesEpisode)
       sub.filesize = parseInt(sub.MovieByteSize)
-      sub.hash = sub.MovieHash != '0' && sub.MovieHash.toLowerCase()
+      sub.hash = sub.MovieHash !== '0' && sub.MovieHash.toLowerCase()
       sub.fps = sub.MovieFPS && parseInt(sub.MovieFPS) > 0 && sub.MovieFPS.toString()
 
       // check: extension, imdb, episode
-      if ((input.extensions.indexOf(sub.SubFormat) == -1)
-          || (input.imdbid && input.imdbid != sub.imdbid)
-          || (input.season && input.episode && (input.season != sub.season || input.episode != sub.episode))) return
+      if ((sub.SubFormat !== 'srt')
+          || (input.imdbid && input.imdbid !== sub.imdbid)
+          || (input.season && input.episode && (input.season !== sub.season || input.episode !== sub.episode))) {
+        return
+      }
 
       const tmp = {
         langcode : sub.ISO639,
@@ -148,18 +154,22 @@ export default class SubsAdapter {
         score    : 0,
         fps      : parseFloat(sub.MovieFPS) || null,
         format   : sub.SubFormat,
-        url      : input.gzip
+
+        url: input.gzip
           ? sub.SubDownloadLink
           : sub.SubDownloadLink.replace('.gz', ''),
-        utf8     : input.gzip
+
+        utf8: input.gzip
           ? sub.SubDownloadLink.replace('download/', 'download/subencoding-utf8/')
           : sub.SubDownloadLink.replace('.gz', '').replace('download/', 'download/subencoding-utf8/'),
-        vtt      : sub.SubDownloadLink.replace('download/', 'download/subformat-vtt/').replace('.gz', ''),
+
+        vtt: sub.SubDownloadLink.replace('download/', 'download/subformat-vtt/').replace('.gz', ''),
       }
 
       // version
-      if (input.hash && sub.hash == input.hash || input.filesize && input.filesize == sub.filesize) {
+      if (input.hash && sub.hash === input.hash || input.filesize && input.filesize === sub.filesize) {
         tmp.score += 9
+
       } else {
         tmp.score += matchTags(sub, 7)
         if ((input.fps && sub.fps) && (sub.fps.startsWith(input.fps) || input.fps.startsWith(sub.fps)))
@@ -173,6 +183,7 @@ export default class SubsAdapter {
       // store subs for sorting
       if (!subtitles[tmp.langcode]) {
         subtitles[tmp.langcode] = [tmp]
+
       } else {
         subtitles[tmp.langcode][Object.keys(subtitles[tmp.langcode]).length] = tmp
       }
@@ -181,12 +192,8 @@ export default class SubsAdapter {
     })).then(() => subtitles)
   }
 
-  filter(list = Object(), input) {
-    const subtitles = Object()
-
-    if (!input.limit || (isNaN(input.limit) && ['best', 'all'].indexOf(input.limit.toLowerCase()) == -1)) {
-      input.limit = 'best'
-    }
+  filter(list = {}) {
+    const subtitles = {}
 
     for (let i in list) {
       let lang = list[i]
@@ -199,23 +206,12 @@ export default class SubsAdapter {
           let y = b.downloads
           return y < x ? -1 : y > x ? 1 : 0
         }
+
         return b.score - a.score
       })
 
-      // filter
-      switch (input.limit.toString().toLowerCase()) {
-        case 'best':
-          // keep only the first (best) item
-          subtitles[langcode] = lang[0]
-          break
-        case 'all':
-          // all good already
-          subtitles[langcode] = lang
-          break
-        default:
-          // keep only n = input.limit items
-          subtitles[langcode] = lang.slice(0, parseInt(input.limit))
-      }
+      // keep only the first (best) item
+      subtitles[langcode] = lang[0]
     }
 
     return Promise.resolve(subtitles)
