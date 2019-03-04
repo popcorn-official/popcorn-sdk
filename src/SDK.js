@@ -1,6 +1,7 @@
 import PctAdapter from './PctAdapter'
 import MetadataAdapter from './MetadataAdapter'
 import SubsAdapter from './SubsAdapter'
+import SearchAdapter from './SearchAdapter'
 
 import * as Constants from './constants'
 
@@ -9,6 +10,7 @@ export default new (class SDK {
   pctAdapter
   metadataAdapter
   subsAdapter
+  searchAdapter
 
   adapters = []
 
@@ -16,6 +18,7 @@ export default new (class SDK {
     this.pctAdapter = new PctAdapter()
     this.metadataAdapter = new MetadataAdapter()
     this.subsAdapter = new SubsAdapter()
+    this.searchAdapter = new SearchAdapter()
   }
 
   addAdapter = (adapter) => {
@@ -89,7 +92,7 @@ export default new (class SDK {
     return items
   }
 
-  searchEpisode = (...args) => ({})
+  searchEpisode = (...args) => this.searchAdapter.searchEpisode(...args)
 
   search = (...args) => ([])
 

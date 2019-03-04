@@ -39,8 +39,8 @@ export const formatShowEpisodes = (episodes) => {
         title   : null,
         summary : null,
         showId  : null,
-        season  : episode.season,
-        number  : episode.season,
+        season  : parseInt(episode.season, 10), // Make sure it's a number
+        number  : parseInt(episode.season, 10), // Make sure it's a number
         type    : Constants.TYPE_SHOW_SEASON,
         episodes: [],
         images  : formatImage(),
@@ -53,9 +53,9 @@ export const formatShowEpisodes = (episodes) => {
       showId     : null,
       title      : episode.title,
       summary    : episode.overview,
-      season     : episode.season,
-      episode    : episode.episode,
-      number     : episode.episode,
+      season     : parseInt(episode.season, 10), // Make sure it's a number
+      episode    : parseInt(episode.episode, 10), // Make sure it's a number
+      number     : parseInt(episode.episode, 10), // Make sure it's a number
       aired      : new Date(episode.first_aired).getTime(),
       torrents   : formatTorrents(episode.torrents, 'show'),
       hasTorrents: true,
