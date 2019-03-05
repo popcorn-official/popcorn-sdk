@@ -42,41 +42,69 @@ export default class RarbgAdapter {
     }
   })
 
-  searchEpisode = async(item, episode, isRetry = false) => {
-    const newTorrents = episode.torrents
+  getRequestParams = (token, item, episode = null) => {
+    let params = {
+      mode    : 'search',
+      category: episode ? 'tv' : 'movies',
+      sort    : 'seeders',
+      ranked  : 1,
+      token   : token,
+    }
 
+    if (episode) {
+      params.search_string = formatShowToSearchQuery(item.title, episode.season, episode.number)
+
+    } else {
+      params.search_imdb = item.id
+    }
+
+    return params
+  }
+
+  getBestTorrents = (existingTorrents, foundTorrents) => {
+    let newTorrents = { ...existingTorrents }
+
+    // Then format all the torrents
+    foundTorrents.map(torrent => this.formatTorrent(torrent, determineQuality(torrent.download)))
+    // Loop true them and get the best ones
+      .forEach((newTorrent) => {
+        if (getBestTorrentOfTwo(newTorrent, newTorrents[newTorrent.quality])) {
+          newTorrents[newTorrent.quality] = newTorrent
+        }
+      })
+
+    return newTorrents
+  }
+
+  /**
+   * Search for a episode
+   *
+   * @param item
+   * @param episode
+   * @param isRetry
+   * @returns {Promise<*>}
+   */
+  searchEpisode = async(item, episode, isRetry = false) => {
     try {
       const token = await this.getToken()
 
       if (token) {
         const { data } = await this.rarbgAPI.get('', {
-          params: {
-            search_string: formatShowToSearchQuery(item.title, episode.season, episode.number),
-            mode         : 'search',
-            category     : '18;41',
-            sort         : 'seeders',
-            ranked       : 1,
-            token        : token,
-          },
+          params: this.getRequestParams(token, item, episode),
         })
 
         if (data.torrent_results && data.torrent_results.length > 0) {
-          data.torrent_results
+          const foundTorrents = data.torrent_results
           // First filter out some bad results that did not even match the episode we want
             .filter(
               torrent => torrent.episode_info.imdb === item.id &&
                          parseInt(torrent.episode_info.seasonnum, 10) === episode.season &&
                          parseInt(torrent.episode_info.epnum, 10) === episode.number,
             )
-            // Then format all the torrents
-            .map(torrent => this.formatTorrent(torrent, determineQuality(torrent.download)))
-            // Loop true them and get the best ones
-            .forEach((newTorrent) => {
-              if (getBestTorrentOfTwo(newTorrent, newTorrents[newTorrent.quality])) {
-                newTorrents[newTorrent.quality] = newTorrent
-              }
-            })
 
+
+          // Return the best torrents
+          return this.getBestTorrents(episode.torrents, foundTorrents)
         }
       }
 
@@ -86,24 +114,35 @@ export default class RarbgAdapter {
       }
     }
 
-    return newTorrents
+    return episode.torrents
   }
 
-  search = (query, category, retry = false) => new Promise((resolve) => {
-    rbg.search('popsticle', {
-      query,
-      category,
-      sort    : 'seeders',
-      verified: false,
-    }).then(results => results.map(torrent => this.formatTorrent(torrent)))
-      .catch((error) => {
-        if (!retry) {
-          return resolve(this.search(query, category, true))
-        }
+  /**
+   * Search for movies
+   *
+   * @param item
+   * @param isRetry
+   * @returns {Promise<*>}
+   */
+  search = async(item, isRetry = false) => {
+    try {
+      const token = await this.getToken()
 
-        return resolve([])
+      const { data } = await this.rarbgAPI.get('', {
+        params: this.getRequestParams(token, item),
       })
-  })
+
+      // Return the best torrents
+      return this.getBestTorrents(item.torrents, data)
+
+    } catch (e) {
+      if (!isRetry) {
+        return this.search(item, true)
+      }
+    }
+
+    return item.torrents
+  }
 
   formatTorrent = (torrent, quality) => ({
     url     : torrent.download,

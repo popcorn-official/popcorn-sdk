@@ -8,7 +8,7 @@ export default class SearchAdapter {
 
   searchEpisode = (item, episode) => this.provider.searchEpisode(item, episode)
 
-  search = search => this.provider.search(search)
+  search = item => this.provider.search(item)
 
   /**
    * This does not work yet but when we add more providers it is the way whe will go

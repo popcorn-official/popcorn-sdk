@@ -94,7 +94,7 @@ export default new (class SDK {
 
   searchEpisode = (...args) => this.searchAdapter.searchEpisode(...args)
 
-  search = (...args) => ([])
+  search = (...args) => this.searchAdapter.search(...args)
 
   searchForSubtitles = (item, torrent = null, season = null, episode = null) => (
     this.subsAdapter.searchSubtitles(item, torrent, season, episode)

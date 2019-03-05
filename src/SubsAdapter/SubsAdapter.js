@@ -60,6 +60,14 @@ export default class SubsAdapter {
       i++
     }
 
+    if (torrent.filename) { // second data call
+      output[i] = {
+        tag: torrent.filename,
+      }
+
+      i++
+    }
+
     if (imdbId) { // third data call
       output[i] = {}
       output[i].imdbid = imdbId.toString()
